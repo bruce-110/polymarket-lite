@@ -2,7 +2,12 @@ import useSWR from "swr";
 import { Market } from "@/types/market";
 
 const fetcher = async (url: string): Promise<Market[]> => {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    cache: 'no-store', // Disable browser caching
+    headers: {
+      'Cache-Control': 'no-cache',
+    }
+  });
   if (!res.ok) {
     const error = new Error("Failed to fetch markets");
     throw error;

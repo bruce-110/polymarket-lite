@@ -45,7 +45,7 @@ export async function GET() {
         headers: {
           "User-Agent": "PolymarketLite/1.0",
         },
-        next: { revalidate: 10 }, // Revalidate every 10 seconds
+        cache: 'no-store', // Disable caching for real-time data
       }
     );
 
@@ -246,7 +246,9 @@ export async function GET() {
 
     return NextResponse.json(topMarkets, {
       headers: {
-        "Cache-Control": "no-store, must-revalidate",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0, s-maxage=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
       },
     });
   } catch (error) {
