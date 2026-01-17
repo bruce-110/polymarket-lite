@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    /* Sophisticated Journal Theme - Warm cream background */
+    /* Sophisticated Journal Theme - Warm cream background (Light Mode) */
     --background: 48 100% 97%; /* #fcfaf2 - warm cream */
     --foreground: 0 0% 20%; /* #333333 - charcoal */
 
@@ -36,6 +36,84 @@
     --terracotta: 15 65% 52%; /* Terracotta - #c25e3e */
     --charcoal: 0 0% 20%; /* #333333 */
     --warm-gray: 30 20% 85%; /* #d9d6d0 */
+
+    /* Custom CSS Variables for Theme Switching */
+    --bg-primary: #fcfaf2;
+    --card-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --border-color: #e8e4dc;
+    --border-light: #d4d4d4;
+    --header-bg: rgba(252, 250, 242, 0.95);
+    --hero-border: #1a1a1a;
+    --category-active: #1a1a1a;
+    --button-secondary: #ffffff;
+    --logo-bg: #3d6b4f;
+    --image-placeholder: #f5f3ef;
+    --footer-bg: #fefefa;
+    --search-bg: #ffffff;
+    --search-border: #e8e4dc;
+    --search-text: #1a1a1a;
+    --search-text-secondary: #666;
+    --sort-bg: #ffffff;
+    --sort-border: #e8e4dc;
+    --sort-text: #1a1a1a;
+    --sort-text-secondary: #666;
+    --theme-toggle-bg: #ffffff;
+    --theme-toggle-border: #e8e4dc;
+    --theme-toggle-hover: #f5f3ef;
+    --theme-toggle-icon: #666;
+    --fav-bg: rgba(0, 0, 0, 0.05);
+    --fav-color: #666;
+  }
+
+  .dark {
+    /* Dark Mode Theme */
+    --background: 0 0% 5%; /* #0a0a0a - almost black */
+    --foreground: 0 0% 95%; /* #f5f5f5 - off-white */
+
+    --card: 0 0% 10%; /* #1a1a1a - dark gray */
+    --card-foreground: 0 0% 95%;
+
+    --border: 0 0% 20%; /* #333333 */
+    --input: 0 0% 20%;
+
+    --primary: 0 0% 95%; /* off-white */
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Custom CSS Variables for Dark Mode */
+    --bg-primary: #0f0f0f;
+    --card-bg: #1a1a1a;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #707070;
+    --border-color: #2a2a2a;
+    --border-light: #3a3a3a;
+    --header-bg: rgba(15, 15, 15, 0.95);
+    --hero-border: #f5f5f5;
+    --category-active: #f5f5f5;
+    --button-secondary: #1a1a1a;
+    --logo-bg: #4d7b5f;
+    --image-placeholder: #2a2a2a;
+    --footer-bg: #0a0a0a;
+    --search-bg: #1a1a1a;
+    --search-border: #3a3a3a;
+    --search-text: #f5f5f5;
+    --search-text-secondary: #a0a0a0;
+    --sort-bg: #1a1a1a;
+    --sort-border: #3a3a3a;
+    --sort-text: #f5f5f5;
+    --sort-text-secondary: #a0a0a0;
+    --theme-toggle-bg: #1a1a1a;
+    --theme-toggle-border: #3a3a3a;
+    --theme-toggle-hover: #252525;
+    --theme-toggle-icon: #f5f5f5;
+    --fav-bg: rgba(255, 255, 255, 0.1);
+    --fav-color: #a0a0a0;
   }
 }
 
@@ -50,10 +128,9 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #fcfaf2;
-    color: #333333;
-    /* Subtle paper texture */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Smooth scrolling */

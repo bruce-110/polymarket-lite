@@ -3,50 +3,89 @@
 import { useState, useMemo } from "react";
 import { Market, Category, CATEGORIES, getCategoryFromTags } from "@/types/market";
 import { useMarkets } from "@/hooks/useMarkets";
+import { useFavorites } from "@/hooks/useFavorites";
 import { MarketCard } from "@/components/MarketCard";
 import { MarketCardSkeleton, HeroSkeleton } from "@/components/MarketCardSkeleton";
 import { BettingDrawer } from "@/components/BettingDrawer";
-import { TrendingUp, RefreshCw, Newspaper } from "lucide-react";
+import { SearchBar } from "@/components/SearchBar";
+import { SortSelector } from "@/components/SortSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { TrendingUp, RefreshCw, Newspaper, Star } from "lucide-react";
+import { SortOption } from "@/lib/theme";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category>("all");
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
   const [selectedOutcome, setSelectedOutcome] = useState<"yes" | "no" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("volume");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const { markets, isLoading, isValidating, error, mutate } = useMarkets();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const heroMarket = useMemo(() => {
     if (markets.length === 0) return null;
     return markets[0];
   }, [markets]);
 
-  const filteredMarkets = useMemo(() => {
-    if (selectedCategory === "all") return markets;
+  const filteredAndSortedMarkets = useMemo(() => {
+    let result = [...markets];
 
-    // More robust filtering - check if any tag contains the category name
-    return markets.filter((m) => {
-      const marketCategory = getCategoryFromTags(m.tags);
+    // Filter by category
+    if (selectedCategory !== "all") {
+      result = result.filter((m) => {
+        const marketCategory = getCategoryFromTags(m.tags);
+        if (marketCategory === selectedCategory) return true;
 
-      // Direct match
-      if (marketCategory === selectedCategory) return true;
+        // Fallback: check if any tag partially matches category
+        const normalizedTags = m.tags.map(t => t.toLowerCase());
+        const categoryKeywords: Record<Category, string[]> = {
+          all: [],
+          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government"],
+          crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft"],
+          sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness"],
+          business: ["business", "finance", "economy", "stock", "market", "trading", "federal reserve", "economics", "stocks"],
+          other: []
+        };
 
-      // Fallback: check if any tag partially matches category
-      const normalizedTags = m.tags.map(t => t.toLowerCase());
-      const categoryKeywords: Record<Category, string[]> = {
-        all: [],
-        politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government"],
-        crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft"],
-        sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness"],
-        business: ["business", "finance", "economy", "stock", "market", "trading", "federal reserve", "economics", "stocks"],
-        other: []
-      };
+        const keywords = categoryKeywords[selectedCategory] || [];
+        return keywords.some(keyword =>
+          normalizedTags.some(tag => tag.includes(keyword))
+        );
+      });
+    }
 
-      const keywords = categoryKeywords[selectedCategory] || [];
-      return keywords.some(keyword =>
-        normalizedTags.some(tag => tag.includes(keyword))
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((m) =>
+        m.question.toLowerCase().includes(query) ||
+        m.tags.some(tag => tag.toLowerCase().includes(query))
       );
+    }
+
+    // Filter by favorites
+    if (showFavoritesOnly) {
+      result = result.filter((m) => favorites.has(m.id));
+    }
+
+    // Sort markets
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case "volume":
+          return (b.volumeScore || 0) - (a.volumeScore || 0);
+        case "probability":
+          return b.yesProbability - a.yesProbability;
+        case "newest":
+          return b.id.localeCompare(a.id);
+        default:
+          return 0;
+      }
     });
-  }, [markets, selectedCategory]);
+
+    return result;
+  }, [markets, selectedCategory, searchQuery, sortBy, favorites, showFavoritesOnly]);
 
   const handleBetClick = (market: Market, outcome: "yes" | "no") => {
     setSelectedMarket(market);
@@ -63,20 +102,20 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fcfaf2' }}>
+    <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: 'var(--bg-primary, #fcfaf2)' }}>
       {/* Header - Minimal and Elegant */}
-      <header className="sticky top-0 z-50 border-b" style={{ backgroundColor: 'rgba(252, 250, 242, 0.95)', borderColor: '#e8e4dc' }}>
+      <header className="sticky top-0 z-50 border-b backdrop-blur-sm" style={{ backgroundColor: 'var(--header-bg, rgba(252, 250, 242, 0.95))', borderColor: 'var(--border-color, #e8e4dc)' }}>
         <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3d6b4f' }}>
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--logo-bg, #3d6b4f)' }}>
                 <Newspaper className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: '#333333' }}>
+                <h1 className="text-xl font-bold" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: 'var(--text-primary, #333333)' }}>
                   Polymarket Lite
                 </h1>
-                <p className="text-xs" style={{ color: '#888', fontFamily: 'Inter, sans-serif' }}>
+                <p className="text-xs" style={{ color: 'var(--text-secondary, #888)', fontFamily: 'Inter, sans-serif' }}>
                   Prediction Markets
                 </p>
               </div>
@@ -84,33 +123,27 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleRefresh}
-                className="px-4 py-2 text-sm font-medium transition-all hover:bg-white/50 disabled:opacity-50"
-                style={{ border: '1px solid #d4d4d4', borderRadius: '2px', color: '#666' }}
+                className="px-4 py-2 text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
+                style={{ border: '1px solid var(--border-color, #d4d4d4)', borderRadius: '2px', color: 'var(--text-secondary, #666)' }}
                 disabled={isLoading || isValidating}
               >
                 <RefreshCw className={`h-4 w-4 ${isValidating ? "animate-spin" : ""}`} />
               </button>
-              {/* HANKO STAMP - Japanese Seal Style */}
+
+              <ThemeToggle />
+
               <button
-                className="px-4 py-2 text-sm font-bold text-white transition-all hover:shadow-md active:scale-95"
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                className={`px-4 py-2 text-sm font-bold transition-all hover:shadow-md active:scale-95 flex items-center gap-2`}
                 style={{
-                  backgroundColor: '#b91c1c',
-                  fontFamily: 'Inter, sans-serif',
-                  borderRadius: '3px',
-                  boxShadow: '0 2px 8px rgba(185, 28, 28, 0.3)',
-                  border: '3px solid #b91c1c',
-                  letterSpacing: '0.05em',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#991b1b';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(185, 28, 28, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#b91c1c';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(185, 28, 28, 0.3)';
+                  backgroundColor: showFavoritesOnly ? '#FFD700' : 'var(--button-secondary, #ffffff)',
+                  color: showFavoritesOnly ? '#000000' : 'var(--text-primary, #333333)',
+                  border: showFavoritesOnly ? '2px solid #FFD700' : '1px solid var(--border-color, #e8e4dc)',
+                  borderRadius: '2px',
                 }}
               >
-                Connect Wallet
+                <Star className="h-4 w-4" style={{ fill: showFavoritesOnly ? '#000000' : 'none' }} />
+                <span className="hidden sm:inline">{showFavoritesOnly ? "All Markets" : "Favorites"}</span>
               </button>
             </div>
           </div>
@@ -122,7 +155,7 @@ export default function HomePage() {
         {isLoading ? (
           <HeroSkeleton />
         ) : heroMarket ? (
-          <section className="flex flex-col md:flex-row gap-6 md:gap-8 items-start" style={{ borderBottom: '2px solid #1a1a1a', paddingBottom: '2rem' }}>
+          <section className="flex flex-col md:flex-row gap-6 md:gap-8 items-start" style={{ borderBottom: '2px solid var(--hero-border, #1a1a1a)', paddingBottom: '2rem' }}>
             {/* Left: Text Content */}
             <div className="flex-1 space-y-4 md:space-y-5">
               {/* Category Badge */}
@@ -138,7 +171,7 @@ export default function HomePage() {
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                 style={{
                   fontFamily: 'Playfair Display, Georgia, serif',
-                  color: '#1a1a1a',
+                  color: 'var(--text-primary, #1a1a1a)',
                   letterSpacing: '-0.03em',
                   lineHeight: '1.1',
                   display: '-webkit-box',
@@ -157,7 +190,7 @@ export default function HomePage() {
                   <span
                     key={i}
                     className="text-xs md:text-sm font-medium"
-                    style={{ color: '#888', fontFamily: 'Inter, sans-serif', borderBottom: '1px dotted #bbb' }}
+                    style={{ color: 'var(--text-secondary, #888)', fontFamily: 'Inter, sans-serif', borderBottom: '1px dotted var(--border-light, #bbb)' }}
                   >
                     {tag}
                   </span>
@@ -188,7 +221,7 @@ export default function HomePage() {
             <div className="flex-shrink-0 mx-auto md:mx-0">
               <div
                 className="overflow-hidden w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64"
-                style={{ borderRadius: '4px', border: '1px solid #d4d4d4' }}
+                style={{ borderRadius: '4px', border: '1px solid var(--border-color, #d4d4d4)' }}
               >
                 <img
                   src={heroMarket.image}
@@ -201,7 +234,7 @@ export default function HomePage() {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.style.background = '#f5f3ef';
+                    (target.parentElement! as HTMLDivElement).style.background = 'var(--image-placeholder, #f5f3ef)';
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.filter = 'grayscale(0%) sepia(0%) contrast(1) brightness(1)';
@@ -221,12 +254,12 @@ export default function HomePage() {
 
         {/* Error State - Enhanced UI */}
         {error && (
-          <div className="rounded-lg p-8 md:p-12 text-center" style={{ border: '1px solid #e8e4dc', backgroundColor: '#ffffff', maxWidth: '500px', margin: '0 auto' }}>
+          <div className="rounded-lg p-8 md:p-12 text-center" style={{ border: '1px solid var(--border-color, #e8e4dc)', backgroundColor: 'var(--card-bg, #ffffff)', maxWidth: '500px', margin: '0 auto' }}>
             <div className="mb-4" style={{ fontSize: '3rem' }}>⚠️</div>
-            <h2 className="text-xl md:text-2xl font-bold mb-3" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: '#1a1a1a' }}>
+            <h2 className="text-xl md:text-2xl font-bold mb-3" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: 'var(--text-primary, #1a1a1a)' }}>
               Network Error
             </h2>
-            <p className="text-sm md:text-base mb-6" style={{ color: '#666', fontFamily: 'Inter, sans-serif', lineHeight: '1.5' }}>
+            <p className="text-sm md:text-base mb-6" style={{ color: 'var(--text-secondary, #666)', fontFamily: 'Inter, sans-serif', lineHeight: '1.5' }}>
               Unable to load market data. Please check your connection and try again.
             </p>
             <button
@@ -239,8 +272,22 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Search and Sort Bar */}
+        <section className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex-1 w-full">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search markets..."
+            />
+          </div>
+          <div className="w-full sm:w-auto">
+            <SortSelector value={sortBy} onChange={setSortBy} />
+          </div>
+        </section>
+
         {/* Category Filters - Newspaper Navigation */}
-        <section style={{ borderBottom: '1px solid #d4d4d4', paddingBottom: '1rem' }}>
+        <section style={{ borderBottom: '1px solid var(--border-color, #d4d4d4)', paddingBottom: '1rem' }}>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
@@ -253,15 +300,15 @@ export default function HomePage() {
                 }`}
                 style={{
                   fontFamily: 'Inter, sans-serif',
-                  backgroundColor: selectedCategory === cat.id ? '#1a1a1a' : 'transparent',
+                  backgroundColor: selectedCategory === cat.id ? 'var(--category-active, #1a1a1a)' : 'transparent',
                   border: selectedCategory === cat.id ? 'none' : '1px solid transparent',
                   borderRadius: '2px',
-                  color: selectedCategory === cat.id ? '#ffffff' : '#666',
+                  color: selectedCategory === cat.id ? '#ffffff' : 'var(--text-secondary, #666)',
                   letterSpacing: '0.02em',
                 }}
                 onMouseEnter={(e) => {
                   if (selectedCategory !== cat.id) {
-                    e.currentTarget.style.borderBottom = '1px solid #1a1a1a';
+                    e.currentTarget.style.borderBottom = '1px solid var(--category-active, #1a1a1a)';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -286,20 +333,37 @@ export default function HomePage() {
           </section>
         ) : (
           <section className="grid md:grid-cols-1 lg:grid-cols-2 gap-0">
-            {filteredMarkets.map((market) => (
-              <MarketCard key={market.id} market={market} onBetClick={handleBetClick} />
+            {filteredAndSortedMarkets.map((market) => (
+              <div key={market.id} className="relative">
+                <button
+                  onClick={() => toggleFavorite(market.id)}
+                  className="absolute top-4 right-4 z-10"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  <Star
+                    className="h-5 w-5 transition-all hover:scale-110"
+                    style={{
+                      fill: isFavorite(market.id) ? '#FFD700' : 'none',
+                      color: isFavorite(market.id) ? '#FFD700' : 'var(--text-tertiary, #ccc)',
+                    }}
+                  />
+                </button>
+                <MarketCard market={market} onBetClick={handleBetClick} />
+              </div>
             ))}
           </section>
         )}
 
-        {!isLoading && filteredMarkets.length === 0 && (
+        {!isLoading && filteredAndSortedMarkets.length === 0 && (
           <div className="text-center py-16 md:py-20">
             <div className="mb-4" style={{ fontSize: '3rem' }}>📭</div>
-            <p className="text-lg md:text-xl font-medium mb-2" style={{ color: '#999', fontFamily: 'Playfair Display, Georgia, serif' }}>
-              No Markets Found
+            <p className="text-lg md:text-xl font-medium mb-2" style={{ color: 'var(--text-tertiary, #999)', fontFamily: 'Playfair Display, Georgia, serif' }}>
+              {showFavoritesOnly ? "No Favorite Markets" : "No Markets Found"}
             </p>
-            <p className="text-sm" style={{ color: '#aaa', fontFamily: 'Inter, sans-serif' }}>
-              Try selecting a different category or check back later.
+            <p className="text-sm" style={{ color: 'var(--text-tertiary, #aaa)', fontFamily: 'Inter, sans-serif' }}>
+              {showFavoritesOnly
+                ? "Mark some markets as favorites to see them here."
+                : "Try selecting a different category or check back later."}
             </p>
           </div>
         )}
@@ -314,12 +378,12 @@ export default function HomePage() {
       />
 
       {/* Footer - Minimal */}
-      <footer className="border-t mt-20 py-12" style={{ borderColor: '#e8e4dc', backgroundColor: '#fefefa' }}>
+      <footer className="border-t mt-20 py-12" style={{ borderColor: 'var(--border-color, #e8e4dc)', backgroundColor: 'var(--footer-bg, #fefefa)' }}>
         <div className="container mx-auto px-6 text-center">
-          <p className="text-sm font-medium mb-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: '#333333' }}>
+          <p className="text-sm font-medium mb-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: 'var(--text-primary, #333333)' }}>
             Polymarket Lite
           </p>
-          <p className="text-xs" style={{ fontFamily: 'Inter, sans-serif', color: '#999' }}>
+          <p className="text-xs" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-tertiary, #999)' }}>
             Prediction Markets, Redefined • Data from Polymarket API
           </p>
         </div>

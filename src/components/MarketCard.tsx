@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo, useRef, useEffect } from "react";
 import { Market } from "@/types/market";
 import { getCategoryFromTags } from "@/types/market";
 import { getFallbackImage } from "@/lib/images";
@@ -10,9 +10,11 @@ interface MarketCardProps {
   onBetClick: (market: Market, outcome: "yes" | "no") => void;
 }
 
-export function MarketCard({ market, onBetClick }: MarketCardProps) {
+function MarketCardComponent({ market, onBetClick }: MarketCardProps) {
   const category = getCategoryFromTags(market.tags);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // Pastel color scheme for categories
   const categoryInfo = {
@@ -35,6 +37,27 @@ export function MarketCard({ market, onBetClick }: MarketCardProps) {
 
   const imageUrl = imageError ? getFallbackImage(category) : market.image;
 
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setImageLoaded(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: "50px" }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
       className="group flex gap-3 md:gap-4 py-3 md:py-4 transition-all duration-200"
@@ -46,29 +69,34 @@ export function MarketCard({ market, onBetClick }: MarketCardProps) {
       {/* Small Thumbnail - Responsive: 80px mobile, 96px desktop */}
       <div className="flex-shrink-0">
         <div
-          className="overflow-hidden w-20 h-20 md:w-24 md:h-24"
+          className="overflow-hidden w-20 h-20 md:w-24 md:h-24 bg-gray-200"
           style={{ borderRadius: '4px', border: '1px solid #d4d4d4' }}
+          ref={imgRef as React.RefObject<HTMLDivElement>}
         >
-          <img
-            src={imageUrl}
-            alt={market.question}
-            className="w-full h-full object-cover transition-all duration-500"
-            style={{
-              filter: 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)',
-              mixBlendMode: 'multiply',
-            }}
-            onError={handleImageError}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.filter = 'grayscale(0%) sepia(0%) contrast(1) brightness(1)';
-              e.currentTarget.style.mixBlendMode = 'normal';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.filter = 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)';
-              e.currentTarget.style.mixBlendMode = 'multiply';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          />
+          {imageLoaded ? (
+            <img
+              src={imageUrl}
+              alt={market.question}
+              className="w-full h-full object-cover transition-all duration-500"
+              style={{
+                filter: 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)',
+                mixBlendMode: 'multiply',
+              }}
+              onError={handleImageError}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = 'grayscale(0%) sepia(0%) contrast(1) brightness(1)';
+                e.currentTarget.style.mixBlendMode = 'normal';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)';
+                e.currentTarget.style.mixBlendMode = 'multiply';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 animate-pulse" />
+          )}
         </div>
       </div>
 
@@ -171,3 +199,12 @@ export function MarketCard({ market, onBetClick }: MarketCardProps) {
     </div>
   );
 }
+
+// Export memoized component to prevent unnecessary re-renders
+export const MarketCard = memo(MarketCardComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.market.id === nextProps.market.id &&
+    prevProps.market.yesProbability === nextProps.market.yesProbability &&
+    prevProps.market.noProbability === nextProps.market.noProbability
+  );
+});

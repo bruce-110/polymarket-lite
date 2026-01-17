@@ -14,6 +14,7 @@ export interface Market {
   yesPrice: number; // 0-1 (raw price)
   noPrice: number; // 0-1 (raw price)
   volume: string;
+  volumeScore?: number; // For sorting by volume
   endDate: string;
   image: string;
   icon?: string;
@@ -21,6 +22,8 @@ export interface Market {
   marketSlug: string;
   active: boolean;
   acceptingOrders: boolean;
+  eventName?: string;
+  eventSlug?: string;
 }
 
 export type Category = "all" | "politics" | "crypto" | "sports" | "business" | "other";
