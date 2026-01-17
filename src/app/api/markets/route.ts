@@ -37,10 +37,10 @@ export async function GET() {
   try {
     console.log("🔥 Fetching trending events from Gamma API...");
 
-    // Fetch events sorted by 24hr volume (highest first)
-    // Increased limit to 50 to get more diverse categories including sports
+    // Fetch events sorted by total volume (all time) to capture major geopolitical events
+    // Total volume is better than 24hr volume for showing important long-term trends
     const response = await fetch(
-      `${GAMMA_EVENTS_API}?limit=50&active=true&closed=false&order=volume24hr:desc`,
+      `${GAMMA_EVENTS_API}?limit=500&active=true&closed=false&order=volume:desc`,
       {
         headers: {
           "User-Agent": "PolymarketLite/1.0",
@@ -230,8 +230,8 @@ export async function GET() {
     // Sort by volume (highest first)
     markets.sort((a, b) => (b.volumeScore || 0) - (a.volumeScore || 0));
 
-    // Take top 40 (increased from 20 to get more category diversity)
-    const topMarkets = markets.slice(0, 40);
+    // Take top 100 markets to show comprehensive trending data
+    const topMarkets = markets.slice(0, 100);
 
     console.log(`🎯 Returning ${topMarkets.length} markets`);
     console.log(`📊 Top market: "${topMarkets[0]?.question}" (${topMarkets[0]?.yesProbability}% / ${topMarkets[0]?.noProbability}%)`);
