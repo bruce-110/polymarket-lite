@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from "react";
 
 type Language = "en" | "zh";
 
@@ -138,13 +138,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [language, mounted]);
 
-  const toggleLanguage = () => {
+  // Memoize toggleLanguage to prevent unnecessary re-renders
+  const toggleLanguage = useCallback(() => {
     setLanguage((prev) => (prev === "en" ? "zh" : "en"));
-  };
+  }, []);
 
-  const t = (key: string): string => {
+  // Memoize t function to prevent unnecessary re-renders
+  const t = useCallback((key: string): string => {
     return translations[language][key as keyof typeof translations.en] || key;
-  };
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, toggleLanguage, t }}>

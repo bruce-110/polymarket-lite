@@ -6,6 +6,8 @@ import { Drawer } from "./ui/drawer";
 import { X, ChevronUp, ChevronDown, TrendingUp } from "lucide-react";
 import { useMarkets } from "@/hooks/useMarkets";
 
+const DEBUG = process.env.NODE_ENV === 'development';
+
 interface BettingDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -52,16 +54,18 @@ export function BettingDrawer({
   const displayROI = roi > 10000 ? "10000%+" : `${roi.toFixed(1)}%`;
 
   const handlePlaceBet = () => {
-    console.log("=== PLACING BET ===");
-    console.log("Market:", market.question);
-    console.log("Outcome:", outcome.toUpperCase());
-    console.log("Amount:", `$${selectedAmount}`);
-    console.log("Price:", price);
-    console.log("Probability:", `${probability}%`);
-    console.log("Potential Profit:", `$${potentialProfit.toFixed(2)}`);
-    console.log("Total Return:", `$${totalReturn.toFixed(2)}`);
-    console.log("ROI:", `${roi.toFixed(2)}%`);
-    console.log("==================");
+    if (DEBUG) {
+      console.log("=== PLACING BET ===");
+      console.log("Market:", market.question);
+      console.log("Outcome:", outcome.toUpperCase());
+      console.log("Amount:", `$${selectedAmount}`);
+      console.log("Price:", price);
+      console.log("Probability:", `${probability}%`);
+      console.log("Potential Profit:", `$${potentialProfit.toFixed(2)}`);
+      console.log("Total Return:", `$${totalReturn.toFixed(2)}`);
+      console.log("ROI:", `${roi.toFixed(2)}%`);
+      console.log("==================");
+    }
     alert(`Bet placed!\n\nYou're betting $${selectedAmount} on ${outcome.toUpperCase()}\n\nIf you win, you'll get $${totalReturn.toFixed(2)} (+$${potentialProfit.toFixed(2)} profit, ${roi.toFixed(1)}% ROI)`);
     onClose();
   };

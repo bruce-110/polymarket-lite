@@ -6,6 +6,14 @@ const GAMMA_EVENTS_API = "https://gamma-api.polymarket.com/events";
 
 export const dynamic = "force-dynamic";
 
+// Type definitions for Gamma API tags
+interface GammaTag {
+  label?: string;
+  name?: string;
+  slug?: string;
+  [key: string]: string | undefined;
+}
+
 interface GammaMarket {
   id: string;
   question: string;
@@ -15,7 +23,7 @@ interface GammaMarket {
     outcome: string;
     price: number;
   }[];
-  tags: any[]; // Gamma API returns tag objects
+  tags: GammaTag[];
   image: string;
   icon: string;
   end_date: string;
@@ -28,14 +36,16 @@ interface GammaEvent {
   slug: string;
   name: string;
   markets: GammaMarket[];
-  tags: any[]; // Gamma API returns tag objects
+  tags: GammaTag[];
   volume: number;
   liquidity: number;
 }
 
+const DEBUG = process.env.NODE_ENV === 'development';
+
 export async function GET() {
   try {
-    console.log("🔥 Fetching trending events from Gamma API...");
+    if (DEBUG) console.log("🔥 Fetching trending events from Gamma API...");
 
     // Fetch events sorted by total volume (all time) to capture major geopolitical events
     // Total volume is better than 24hr volume for showing important long-term trends
@@ -56,28 +66,30 @@ export async function GET() {
     const eventsData = await response.json();
     const rawEvents: GammaEvent[] = eventsData.data || eventsData || [];
 
-    console.log(`📊 Loaded ${rawEvents.length} events from Gamma API`);
+    if (DEBUG) {
+      console.log(`📊 Loaded ${rawEvents.length} events from Gamma API`);
 
-    // Log first few events to see what we're getting
-    if (rawEvents.length > 0) {
-      console.log("🔥 Top 3 events by volume:");
-      rawEvents.slice(0, 3).forEach((event, i) => {
-        console.log(`  ${i + 1}. ${event.name || 'Unnamed'} (${event.markets?.length || 0} markets, $${(event.volume / 1000000).toFixed(1)}M volume)`);
-        if (event.markets && event.markets.length > 0) {
-          const topMarket = event.markets[0];
-          console.log(`     → Top market: "${topMarket.question}"`);
-          // Parse outcomePrices for logging (handle both string and array)
-          try {
-            const priceString = typeof topMarket.outcomePrices === 'string'
-              ? topMarket.outcomePrices
-              : JSON.stringify(topMarket.outcomePrices);
-            const prices = JSON.parse(priceString || '[]');
-            console.log(`     → Prices: ${Array.isArray(prices) ? prices.join(', ') : 'N/A'}`);
-          } catch {
-            console.log(`     → Prices: N/A (parse error)`);
+      // Log first few events to see what we're getting
+      if (rawEvents.length > 0) {
+        console.log("🔥 Top 3 events by volume:");
+        rawEvents.slice(0, 3).forEach((event, i) => {
+          console.log(`  ${i + 1}. ${event.name || 'Unnamed'} (${event.markets?.length || 0} markets, $${(event.volume / 1000000).toFixed(1)}M volume)`);
+          if (event.markets && event.markets.length > 0) {
+            const topMarket = event.markets[0];
+            console.log(`     → Top market: "${topMarket.question}"`);
+            // Parse outcomePrices for logging (handle both string and array)
+            try {
+              const priceString = typeof topMarket.outcomePrices === 'string'
+                ? topMarket.outcomePrices
+                : JSON.stringify(topMarket.outcomePrices);
+              const prices = JSON.parse(priceString || '[]');
+              console.log(`     → Prices: ${Array.isArray(prices) ? prices.join(', ') : 'N/A'}`);
+            } catch {
+              console.log(`     → Prices: N/A (parse error)`);
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     // Transform events into our market format
@@ -185,7 +197,7 @@ export async function GET() {
           : "$100K";
 
         // Log first market for debugging
-        if (index === 0) {
+        if (DEBUG && index === 0) {
           console.log("✅ First processed market:");
           console.log(`  Event: ${event.name}`);
           console.log(`  Question: ${topMarket.question}`);
@@ -254,13 +266,17 @@ export async function GET() {
       return !isExtremeProbability && !isChinaRelated;
     });
 
-    console.log(`📊 Filtered ${markets.length - filteredMarkets.length} markets (extreme probabilities ≤3% or ≥97%, or China-related)`);
+    if (DEBUG) {
+      console.log(`📊 Filtered ${markets.length - filteredMarkets.length} markets (extreme probabilities ≤3% or ≥97%, or China-related)`);
+    }
 
     // Take top 150 markets from filtered results
     const topMarkets = filteredMarkets.slice(0, 150);
 
-    console.log(`🎯 Returning ${topMarkets.length} markets`);
-    console.log(`📊 Top market: "${topMarkets[0]?.question}" (${topMarkets[0]?.yesProbability}% / ${topMarkets[0]?.noProbability}%)`);
+    if (DEBUG) {
+      console.log(`🎯 Returning ${topMarkets.length} markets`);
+      console.log(`📊 Top market: "${topMarkets[0]?.question}" (${topMarkets[0]?.yesProbability}% / ${topMarkets[0]?.noProbability}%)`);
+    }
 
     return NextResponse.json(topMarkets, {
       headers: {

@@ -15,6 +15,8 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { TrendingUp, RefreshCw, Newspaper, Star } from "lucide-react";
 import { SortOption } from "@/lib/theme";
 
+const DEBUG = process.env.NODE_ENV === 'development';
+
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category>("all");
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
@@ -62,11 +64,13 @@ export default function HomePage() {
     const primary = scoredMarkets[0]?.market || null;
     const secondary = scoredMarkets[1]?.market || null;
 
-    if (primary) {
-      console.log(`🏆 Primary headline: "${primary.question}" (score: ${scoredMarkets[0]?.score.toFixed(1)})`);
-    }
-    if (secondary) {
-      console.log(`⭐ Secondary headline: "${secondary.question}" (score: ${scoredMarkets[1]?.score.toFixed(1)})`);
+    if (DEBUG) {
+      if (primary) {
+        console.log(`🏆 Primary headline: "${primary.question}" (score: ${scoredMarkets[0]?.score.toFixed(1)})`);
+      }
+      if (secondary) {
+        console.log(`⭐ Secondary headline: "${secondary.question}" (score: ${scoredMarkets[1]?.score.toFixed(1)})`);
+      }
     }
 
     return { primary, secondary };

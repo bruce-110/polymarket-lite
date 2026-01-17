@@ -1,18 +1,102 @@
 import useSWR from "swr";
 import { Market } from "@/types/market";
 
-const fetcher = async (url: string): Promise<Market[]> => {
-  const res = await fetch(url, {
-    cache: 'no-store', // Disable browser caching
-    headers: {
-      'Cache-Control': 'no-cache',
-    }
-  });
-  if (!res.ok) {
-    const error = new Error("Failed to fetch markets");
-    throw error;
+// Error types for better handling
+class MarketFetchError extends Error {
+  constructor(
+    message: string,
+    public code?: string,
+    public status?: number
+  ) {
+    super(message);
+    this.name = "MarketFetchError";
   }
-  return res.json();
+}
+
+const fetcher = async (url: string): Promise<Market[]> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+  try {
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      // Handle different error statuses
+      if (res.status === 429) {
+        throw new MarketFetchError(
+          "Too many requests. Please try again later.",
+          "RATE_LIMIT",
+          429
+        );
+      }
+      if (res.status === 500) {
+        throw new MarketFetchError(
+          "Server error. Please try again later.",
+          "SERVER_ERROR",
+          500
+        );
+      }
+      if (res.status === 503) {
+        throw new MarketFetchError(
+          "Service temporarily unavailable.",
+          "SERVICE_UNAVAILABLE",
+          503
+        );
+      }
+      throw new MarketFetchError(
+        `Failed to fetch markets (Status: ${res.status})`,
+        "FETCH_ERROR",
+        res.status
+      );
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      throw new MarketFetchError(
+        "Invalid data format received from server.",
+        "INVALID_DATA"
+      );
+    }
+
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+
+    if (error instanceof MarketFetchError) {
+      throw error;
+    }
+
+    // Handle abort/timeout
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new MarketFetchError(
+        "Request timeout. Please check your connection.",
+        "TIMEOUT"
+      );
+    }
+
+    // Handle network errors
+    if (error instanceof TypeError) {
+      throw new MarketFetchError(
+        "Network error. Please check your connection.",
+        "NETWORK_ERROR"
+      );
+    }
+
+    // Unknown errors
+    throw new MarketFetchError(
+      "An unexpected error occurred.",
+      "UNKNOWN_ERROR"
+    );
+  }
 };
 
 export function useMarkets() {
@@ -22,10 +106,18 @@ export function useMarkets() {
     {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      refreshInterval: 10000, // Reduced to 10 seconds for more real-time updates
-      dedupingInterval: 5000, // Reduced deduping for fresher data
-      errorRetryCount: 3,
-      errorRetryInterval: 5000,
+      refreshInterval: 10000,
+      dedupingInterval: 5000,
+      errorRetryCount: 2,
+      errorRetryInterval: 3000,
+      shouldRetryOnError: (error) => {
+        // Don't retry on rate limits or client errors
+        if (error instanceof MarketFetchError) {
+          return error.code !== "RATE_LIMIT" &&
+                 error.code !== "NETWORK_ERROR";
+        }
+        return true;
+      },
     }
   );
 
@@ -46,3 +138,5 @@ export function useMarkets() {
     mutate,
   };
 }
+
+export type { MarketFetchError };
