@@ -226,8 +226,38 @@ export async function GET() {
     // Sort by volume (highest first)
     markets.sort((a, b) => (b.volumeScore || 0) - (a.volumeScore || 0));
 
-    // Take top 150 markets to show comprehensive trending data including all major events
-    const topMarkets = markets.slice(0, 150);
+    // Filter out:
+    // 1. Markets with 0% or 100% probabilities (extreme outcomes)
+    // 2. China-related markets
+    const filteredMarkets = markets.filter((market) => {
+      // Filter out extreme probabilities (0% or 100%)
+      const isExtremeProbability =
+        market.yesProbability === 0 ||
+        market.yesProbability === 100 ||
+        market.noProbability === 0 ||
+        market.noProbability === 100;
+
+      // Filter out China-related markets
+      const chinaKeywords = [
+        "china", "chinese", "xi jinping", "beijing", "prc",
+        "shanghai", "taiwan", "hong kong", "hk", "roc",
+        "习近平", "中国", "台湾", "香港"
+      ];
+      const questionLower = market.question.toLowerCase();
+      const tagsLower = market.tags.map(t => t.toLowerCase()).join(" ");
+      const isChinaRelated = chinaKeywords.some(keyword =>
+        questionLower.includes(keyword.toLowerCase()) ||
+        tagsLower.includes(keyword.toLowerCase())
+      );
+
+      // Keep market if it's not extreme probability and not China-related
+      return !isExtremeProbability && !isChinaRelated;
+    });
+
+    console.log(`📊 Filtered ${markets.length - filteredMarkets.length} markets (extreme probabilities or China-related)`);
+
+    // Take top 150 markets from filtered results
+    const topMarkets = filteredMarkets.slice(0, 150);
 
     console.log(`🎯 Returning ${topMarkets.length} markets`);
     console.log(`📊 Top market: "${topMarkets[0]?.question}" (${topMarkets[0]?.yesProbability}% / ${topMarkets[0]?.noProbability}%)`);
