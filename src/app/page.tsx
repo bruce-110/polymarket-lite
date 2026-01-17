@@ -86,33 +86,7 @@ export default function HomePage() {
     if (selectedCategory !== "all") {
       result = result.filter((m) => {
         const marketCategory = getCategoryFromTags(m.tags);
-        if (marketCategory === selectedCategory) return true;
-
-        // Fallback: check if any tag partially matches category
-        const normalizedTags = m.tags.map(t => t.toLowerCase());
-        const categoryKeywords: Record<Category, string[]> = {
-          all: [],
-          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government", "democrat", "republican", "white house"],
-          geopolitics: ["russia", "ukraine", "war", "israel", "iran", "middle east", "nuclear", "north korea", "invasion", "military", "defense", "nato"],
-          business: ["business", "finance", "economy", "trading", "federal reserve", "fed", "interest rates", "inflation", "gdp", "recession", "banking", "wall street"],
-          stocks: ["stocks", "stock market", "s&p 500", "nasdaq", "dow jones", "apple", "microsoft", "google", "amazon", "meta", "tesla", "nvidia", "earnings"],
-          crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft", "web3", "altcoin"],
-          technology: ["tech", "technology", "tech company", "spacex", "elon", "musk", "innovation", "startup", "big tech", "software", "hardware"],
-          ai: ["ai", "artificial intelligence", "machine learning", "deep learning", "chatgpt", "openai", "agl", "automation", "robotics", "llm", "generative ai"],
-          sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness", "champions league", "premier league"],
-          entertainment: ["movies", "film", "oscar", "academy awards", "music", "grammy", "tv", "television", "streaming", "netflix", "celebrity", "hollywood", "box office"],
-          gaming: ["gaming", "esports", "video games", "playstation", "xbox", "nintendo", "steam", "twitch", "gaming industry", "game awards"],
-          science: ["space", "nasa", "spacex", "astronomy", "physics", "research", "discovery", "space exploration", "mars", "moon"],
-          climate: ["climate", "climate change", "weather", "environment", "temperature", "global warming", "carbon", "energy", "renewable energy"],
-          health: ["health", "medical", "pandemic", "virus", "disease", "vaccine", "fda", "covid", "public health", "medicine"],
-          society: ["society", "culture", "social", "social media", "twitter", "facebook", "tiktok", "influencers", "trends", "viral", "internet"],
-          other: []
-        };
-
-        const keywords = categoryKeywords[selectedCategory] || [];
-        return keywords.some(keyword =>
-          normalizedTags.some(tag => tag.includes(keyword))
-        );
+        return marketCategory === selectedCategory;
       });
     }
 
