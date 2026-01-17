@@ -19,15 +19,21 @@ function MarketCardComponent({ market, onBetClick }: MarketCardProps) {
   // Pastel color scheme for categories
   const categoryInfo = {
     all: { emoji: "🔥", label: "Trending", color: "#3d6b4f", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
-    politics: { emoji: "🏛️", label: "Politics", color: "#dc2626", bg: "bg-red-50", border: "border-red-200", text: "text-red-800" },
-    geopolitics: { emoji: "🌍", label: "Geopolitics", color: "#ea580c", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800" },
-    business: { emoji: "💰", label: "Business", color: "#7c3aed", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800" },
-    crypto: { emoji: "₿", label: "Crypto", color: "#2563eb", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800" },
-    technology: { emoji: "💻", label: "Tech", color: "#0891b2", bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-800" },
-    sports: { emoji: "⚽", label: "Sports", color: "#059669", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
-    entertainment: { emoji: "🎬", label: "Entertainment", color: "#db2777", bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-800" },
-    science: { emoji: "🔬", label: "Science", color: "#4f46e5", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800" },
-    other: { emoji: "📊", label: "Other", color: "#6b7280", bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-800" },
+    politics: { emoji: "🏛️", label: "政治", color: "#dc2626", bg: "bg-red-50", border: "border-red-200", text: "text-red-800" },
+    geopolitics: { emoji: "🌍", label: "地缘政治", color: "#ea580c", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800" },
+    business: { emoji: "💼", label: "商业", color: "#7c3aed", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800" },
+    stocks: { emoji: "📈", label: "股市", color: "#0891b2", bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-800" },
+    crypto: { emoji: "₿", label: "加密货币", color: "#2563eb", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800" },
+    technology: { emoji: "💻", label: "科技", color: "#4f46e5", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800" },
+    ai: { emoji: "🤖", label: "人工智能", color: "#a855f7", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800" },
+    sports: { emoji: "⚽", label: "体育", color: "#059669", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
+    entertainment: { emoji: "🎬", label: "娱乐", color: "#db2777", bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-800" },
+    gaming: { emoji: "🎮", label: "游戏", color: "#8b5cf6", bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-800" },
+    science: { emoji: "🔬", label: "科学", color: "#0d9488", bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-800" },
+    climate: { emoji: "🌡️", label: "气候", color: "#65a30d", bg: "bg-lime-50", border: "border-lime-200", text: "text-lime-800" },
+    health: { emoji: "🏥", label: "健康", color: "#dc2626", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-800" },
+    society: { emoji: "👥", label: "社会", color: "#0891b2", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800" },
+    other: { emoji: "📊", label: "其他", color: "#6b7280", bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-800" },
   }[category];
 
   // Determine which outcome is more likely

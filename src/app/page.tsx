@@ -24,8 +24,9 @@ export default function HomePage() {
   const { markets, isLoading, isValidating, error, mutate } = useMarkets();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
-  const heroMarket = useMemo(() => {
-    if (markets.length === 0) return null;
+  // Select top 2 markets for headlines (primary and secondary)
+  const headlineMarkets = useMemo(() => {
+    if (markets.length === 0) return { primary: null, secondary: null };
 
     // Score each market for headline suitability
     const scoredMarkets = markets.map((market) => {
@@ -52,18 +53,31 @@ export default function HomePage() {
       return { market, score };
     });
 
-    // Sort by score and return the best one
+    // Sort by score
     scoredMarkets.sort((a, b) => b.score - a.score);
 
-    const best = scoredMarkets[0];
-    console.log(`🏆 Selected headline: "${best.market.question}" (score: ${best.score.toFixed(1)})`);
-    console.log(`   Volume: ${best.market.volume}, Yes: ${best.market.yesProbability}%`);
+    const primary = scoredMarkets[0]?.market || null;
+    const secondary = scoredMarkets[1]?.market || null;
 
-    return best.market;
+    if (primary) {
+      console.log(`🏆 Primary headline: "${primary.question}" (score: ${scoredMarkets[0]?.score.toFixed(1)})`);
+    }
+    if (secondary) {
+      console.log(`⭐ Secondary headline: "${secondary.question}" (score: ${scoredMarkets[1]?.score.toFixed(1)})`);
+    }
+
+    return { primary, secondary };
   }, [markets]);
 
   const filteredAndSortedMarkets = useMemo(() => {
     let result = [...markets];
+
+    // Exclude headline markets from the list to avoid duplication
+    const headlineIds = new Set([
+      headlineMarkets.primary?.id,
+      headlineMarkets.secondary?.id,
+    ].filter(Boolean));
+    result = result.filter(m => !headlineIds.has(m.id));
 
     // Filter by category
     if (selectedCategory !== "all") {
@@ -75,14 +89,20 @@ export default function HomePage() {
         const normalizedTags = m.tags.map(t => t.toLowerCase());
         const categoryKeywords: Record<Category, string[]> = {
           all: [],
-          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government", "democrat", "republican"],
-          geopolitics: ["russia", "ukraine", "war", "israel", "iran", "middle east", "nuclear", "north korea", "invasion", "military", "defense"],
-          business: ["business", "finance", "economy", "stock", "market", "trading", "federal reserve", "fed", "interest rates", "inflation", "gdp", "recession"],
+          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government", "democrat", "republican", "white house"],
+          geopolitics: ["russia", "ukraine", "war", "israel", "iran", "middle east", "nuclear", "north korea", "invasion", "military", "defense", "nato"],
+          business: ["business", "finance", "economy", "trading", "federal reserve", "fed", "interest rates", "inflation", "gdp", "recession", "banking", "wall street"],
+          stocks: ["stocks", "stock market", "s&p 500", "nasdaq", "dow jones", "apple", "microsoft", "google", "amazon", "meta", "tesla", "nvidia", "earnings"],
           crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft", "web3", "altcoin"],
-          technology: ["tech", "ai", "artificial intelligence", "machine learning", "apple", "google", "microsoft", "amazon", "meta", "tesla", "spacex", "elon"],
+          technology: ["tech", "technology", "tech company", "spacex", "elon", "musk", "innovation", "startup", "big tech", "software", "hardware"],
+          ai: ["ai", "artificial intelligence", "machine learning", "deep learning", "chatgpt", "openai", "agl", "automation", "robotics", "llm", "generative ai"],
           sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness", "champions league", "premier league"],
-          entertainment: ["movies", "film", "oscar", "academy awards", "music", "grammy", "tv", "television", "streaming", "netflix", "celebrity"],
-          science: ["space", "nasa", "climate", "climate change", "weather", "health", "medical", "pandemic", "virus", "research", "discovery"],
+          entertainment: ["movies", "film", "oscar", "academy awards", "music", "grammy", "tv", "television", "streaming", "netflix", "celebrity", "hollywood", "box office"],
+          gaming: ["gaming", "esports", "video games", "playstation", "xbox", "nintendo", "steam", "twitch", "gaming industry", "game awards"],
+          science: ["space", "nasa", "spacex", "astronomy", "physics", "research", "discovery", "space exploration", "mars", "moon"],
+          climate: ["climate", "climate change", "weather", "environment", "temperature", "global warming", "carbon", "energy", "renewable energy"],
+          health: ["health", "medical", "pandemic", "virus", "disease", "vaccine", "fda", "covid", "public health", "medicine"],
+          society: ["society", "culture", "social", "social media", "twitter", "facebook", "tiktok", "influencers", "trends", "viral", "internet"],
           other: []
         };
 
@@ -188,10 +208,10 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-6 py-10 space-y-12">
-        {/* Hero Section - Text-Focused, Mobile-Optimized */}
+        {/* Primary Headline Section - Large */}
         {isLoading ? (
           <HeroSkeleton />
-        ) : heroMarket ? (
+        ) : headlineMarkets.primary ? (
           <section className="flex flex-col md:flex-row gap-6 md:gap-8 items-start" style={{ borderBottom: '2px solid var(--hero-border, #1a1a1a)', paddingBottom: '2rem' }}>
             {/* Left: Text Content */}
             <div className="flex-1 space-y-4 md:space-y-5">
@@ -199,11 +219,11 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 text-xs md:text-sm font-medium" style={{ backgroundColor: 'rgba(61, 107, 79, 0.1)', border: '1px solid #3d6b4f', borderRadius: '2px', color: '#3d6b4f' }}>
                 <TrendingUp className="h-4 w-4" />
                 <span style={{ fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600' }}>
-                  {getCategoryFromTags(heroMarket.tags)}
+                  {getCategoryFromTags(headlineMarkets.primary.tags)}
                 </span>
               </div>
 
-              {/* Massive Headline - Mobile Responsive with Truncation */}
+              {/* Massive Headline */}
               <h1
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                 style={{
@@ -218,12 +238,12 @@ export default function HomePage() {
                   textOverflow: 'ellipsis',
                 }}
               >
-                {heroMarket.question}
+                {headlineMarkets.primary.question}
               </h1>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 md:gap-3">
-                {heroMarket.tags.slice(0, 4).map((tag, i) => (
+                {headlineMarkets.primary.tags.slice(0, 4).map((tag, i) => (
                   <span
                     key={i}
                     className="text-xs md:text-sm font-medium"
@@ -234,35 +254,35 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Action Buttons - Full Width on Mobile */}
+              {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => handleBetClick(heroMarket, "yes")}
+                  onClick={() => handleBetClick(headlineMarkets.primary, "yes")}
                   className="flex-1 md:flex-none px-4 md:px-6 h-11 md:h-12 font-semibold text-white transition-all hover:shadow-lg active:scale-95"
                   style={{ backgroundColor: '#3d6b4f', fontFamily: 'Inter, sans-serif', borderRadius: '2px', fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(61, 107, 79, 0.2)' }}
                 >
-                  YES {heroMarket.yesProbability}%
+                  YES {headlineMarkets.primary.yesProbability}%
                 </button>
 
                 <button
-                  onClick={() => handleBetClick(heroMarket, "no")}
+                  onClick={() => handleBetClick(headlineMarkets.primary, "no")}
                   className="flex-1 md:flex-none px-4 md:px-6 h-11 md:h-12 font-semibold text-white transition-all hover:shadow-lg active:scale-95"
                   style={{ backgroundColor: '#c25e3e', fontFamily: 'Inter, sans-serif', borderRadius: '2px', fontSize: '0.95rem', boxShadow: '0 2px 6px rgba(194, 94, 62, 0.2)' }}
                 >
-                  NO {heroMarket.noProbability}%
+                  NO {headlineMarkets.primary.noProbability}%
                 </button>
               </div>
             </div>
 
-            {/* Right: Medium Image - Responsive */}
+            {/* Right: Medium Image */}
             <div className="flex-shrink-0 mx-auto md:mx-0">
               <div
                 className="overflow-hidden w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64"
                 style={{ borderRadius: '4px', border: '1px solid var(--border-color, #d4d4d4)' }}
               >
                 <img
-                  src={heroMarket.image}
-                  alt={heroMarket.question}
+                  src={headlineMarkets.primary.image}
+                  alt={headlineMarkets.primary.question}
                   className="w-full h-full object-cover transition-all duration-500"
                   style={{
                     filter: 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)',
@@ -277,6 +297,105 @@ export default function HomePage() {
                     e.currentTarget.style.filter = 'grayscale(0%) sepia(0%) contrast(1) brightness(1)';
                     e.currentTarget.style.mixBlendMode = 'normal';
                     e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.filter = 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)';
+                    e.currentTarget.style.mixBlendMode = 'multiply';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                />
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* Secondary Headline Section - Medium */}
+        {!isLoading && headlineMarkets.secondary ? (
+          <section className="flex flex-col md:flex-row gap-4 md:gap-6 items-start p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'var(--card-bg, rgba(255,255,255,0.5))', border: '1px solid var(--border-color, #e8e4dc)' }}>
+            {/* Left: Text Content */}
+            <div className="flex-1 space-y-3">
+              {/* Category Badge */}
+              <div className="inline-flex items-center gap-2 px-2 py-1 text-xs font-medium" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid #3b82f6', borderRadius: '2px', color: '#3b82f6' }}>
+                <Star className="h-3 w-3" />
+                <span style={{ fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>
+                  HOT PICK
+                </span>
+              </div>
+
+              {/* Headline */}
+              <h2
+                className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight"
+                style={{
+                  fontFamily: 'Playfair Display, Georgia, serif',
+                  color: 'var(--text-primary, #1a1a1a)',
+                  letterSpacing: '-0.02em',
+                  lineHeight: '1.2',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {headlineMarkets.secondary.question}
+              </h2>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2">
+                {headlineMarkets.secondary.tags.slice(0, 3).map((tag, i) => (
+                  <span
+                    key={i}
+                    className="text-xs font-medium"
+                    style={{ color: 'var(--text-secondary, #888)', fontFamily: 'Inter, sans-serif', borderBottom: '1px dotted var(--border-light, #bbb)' }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => handleBetClick(headlineMarkets.secondary, "yes")}
+                  className="flex-1 md:flex-none px-3 md:px-5 h-9 md:h-10 font-semibold text-white transition-all hover:shadow-lg active:scale-95"
+                  style={{ backgroundColor: '#3b82f6', fontFamily: 'Inter, sans-serif', borderRadius: '2px', fontSize: '0.9rem', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)' }}
+                >
+                  YES {headlineMarkets.secondary.yesProbability}%
+                </button>
+
+                <button
+                  onClick={() => handleBetClick(headlineMarkets.secondary, "no")}
+                  className="flex-1 md:flex-none px-3 md:px-5 h-9 md:h-10 font-semibold text-white transition-all hover:shadow-lg active:scale-95"
+                  style={{ backgroundColor: '#ef4444', fontFamily: 'Inter, sans-serif', borderRadius: '2px', fontSize: '0.9rem', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)' }}
+                >
+                  NO {headlineMarkets.secondary.noProbability}%
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Small Image */}
+            <div className="flex-shrink-0 mx-auto md:mx-0">
+              <div
+                className="overflow-hidden w-32 h-32 sm:w-40 sm:h-40"
+                style={{ borderRadius: '4px', border: '1px solid var(--border-color, #d4d4d4)' }}
+              >
+                <img
+                  src={headlineMarkets.secondary.image}
+                  alt={headlineMarkets.secondary.question}
+                  className="w-full h-full object-cover transition-all duration-500"
+                  style={{
+                    filter: 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)',
+                    mixBlendMode: 'multiply',
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    (target.parentElement! as HTMLDivElement).style.background = 'var(--image-placeholder, #f5f3ef)';
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.filter = 'grayscale(0%) sepia(0%) contrast(1) brightness(1)';
+                    e.currentTarget.style.mixBlendMode = 'normal';
+                    e.currentTarget.style.transform = 'scale(1.05)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.filter = 'grayscale(30%) sepia(20%) contrast(1.05) brightness(0.95)';
