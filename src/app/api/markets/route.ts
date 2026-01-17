@@ -82,83 +82,75 @@ export async function GET() {
 
     // Transform events into our market format
     const markets = rawEvents
-      .filter((event) => {
+      .map((event) => {
         // Must have markets
         if (!event.markets || event.markets.length === 0) {
-          return false;
-        }
-
-        // Get the top market (highest volume market for this event)
-        const topMarket = event.markets[0];
-
-        // Must have question (non-empty string)
-        if (!topMarket.question || topMarket.question.trim().length === 0) {
-          console.log(`⚠️ Skipping market - empty question`);
-          return false;
-        }
-
-        // Must have image (non-empty, valid URL)
-        if (!topMarket.image || !isValidImageUrl(topMarket.image)) {
-          console.log(`⚠️ Skipping market - invalid image URL`);
-          return false;
-        }
-
-        // Must have outcome prices (note: outcomePrices is a string, not an array)
-        if (!topMarket.outcomePrices) {
-          console.log(`⚠️ Skipping market - missing outcomePrices`);
-          return false;
-        }
-
-        // Parse outcomePrices (handle both string and array formats)
-        let outcomePriceArray: string[];
-        try {
-          if (Array.isArray(topMarket.outcomePrices)) {
-            // Already an array
-            outcomePriceArray = topMarket.outcomePrices as string[];
-          } else {
-            // String that needs parsing
-            outcomePriceArray = JSON.parse(topMarket.outcomePrices);
-          }
-
-          if (!Array.isArray(outcomePriceArray) || outcomePriceArray.length !== 2) {
-            console.log(`⚠️ Skipping market - invalid outcomePrices structure`);
-            return false;
-          }
-        } catch (e) {
-          console.log(`⚠️ Skipping market - failed to parse outcomePrices`);
-          return false;
-        }
-
-        // Validate prices are real numbers (not both 0.5 placeholder)
-        const prices = outcomePriceArray.map(p => parseFloat(p));
-        // Check if at least one price is NOT 0.5 (reject only when both are 0.5)
-        const hasRealPrices = prices.some(p => p !== 0.5 && p !== null && p !== undefined && !isNaN(p));
-        if (!hasRealPrices) {
-          console.log(`⚠️ Skipping market - placeholder prices (${prices.join(', ')})`);
-          return false;
+          return null;
         }
 
         // Must have meaningful volume (skip if 0 or undefined)
         if (!event.volume || event.volume <= 0) {
-          console.log(`⚠️ Skipping market - zero or invalid volume`);
-          return false;
+          return null;
         }
 
-        return true;
+        // Find the first market with valid prices (not 0/1)
+        let validMarket = null;
+        for (const market of event.markets) {
+          // Must have question
+          if (!market.question || market.question.trim().length === 0) {
+            continue;
+          }
+
+          // Must have image
+          if (!market.image || !isValidImageUrl(market.image)) {
+            continue;
+          }
+
+          // Must have outcome prices
+          if (!market.outcomePrices) {
+            continue;
+          }
+
+          // Parse outcomePrices
+          let outcomePriceArray: string[];
+          try {
+            if (Array.isArray(market.outcomePrices)) {
+              outcomePriceArray = market.outcomePrices as string[];
+            } else {
+              outcomePriceArray = JSON.parse(market.outcomePrices);
+            }
+
+            if (!Array.isArray(outcomePriceArray) || outcomePriceArray.length !== 2) {
+              continue;
+            }
+          } catch (e) {
+            continue;
+          }
+
+          // Parse prices
+          const prices = outcomePriceArray.map(p => parseFloat(p));
+
+          // Skip if prices are 0/1 (resolved or no liquidity)
+          const yesPrice = prices[0];
+          const noPrice = prices[1];
+
+          // Skip extreme prices (only show markets with 5%-95% probability range)
+          if (yesPrice <= 0.05 || yesPrice >= 0.95 || noPrice <= 0.05 || noPrice >= 0.95) {
+            continue;
+          }
+
+          // Found a valid market!
+          validMarket = { ...market, yesPrice, noPrice };
+          break;
+        }
+
+        return validMarket ? { event, market: validMarket } : null;
       })
-      .map((event, index) => {
-        const topMarket = event.markets[0];
-
-        // Parse outcome prices (handle both string and array formats)
-        let outcomePriceArray: string[];
-        if (Array.isArray(topMarket.outcomePrices)) {
-          outcomePriceArray = topMarket.outcomePrices as string[];
-        } else {
-          outcomePriceArray = JSON.parse(topMarket.outcomePrices);
-        }
-
-        const yesPrice = parseFloat(outcomePriceArray[0]);
-        const noPrice = parseFloat(outcomePriceArray[1]);
+      .filter((item): item is { event: GammaEvent; market: any & { yesPrice: number; noPrice: number } } => item !== null)
+      .map(({ event, market: topMarket }, index) => {
+        // Prices already parsed in the filter step
+        const yesPrice = topMarket.yesPrice;
+        const noPrice = topMarket.noPrice;
 
         // Calculate raw probabilities
         const rawYesProbability = Math.round(yesPrice * 100);
