@@ -20,9 +20,13 @@ function MarketCardComponent({ market, onBetClick }: MarketCardProps) {
   const categoryInfo = {
     all: { emoji: "🔥", label: "Trending", color: "#3d6b4f", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
     politics: { emoji: "🏛️", label: "Politics", color: "#dc2626", bg: "bg-red-50", border: "border-red-200", text: "text-red-800" },
-    crypto: { emoji: "₿", label: "Crypto", color: "#2563eb", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800" },
-    sports: { emoji: "⚽", label: "Sports", color: "#059669", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
+    geopolitics: { emoji: "🌍", label: "Geopolitics", color: "#ea580c", bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-800" },
     business: { emoji: "💰", label: "Business", color: "#7c3aed", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800" },
+    crypto: { emoji: "₿", label: "Crypto", color: "#2563eb", bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800" },
+    technology: { emoji: "💻", label: "Tech", color: "#0891b2", bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-800" },
+    sports: { emoji: "⚽", label: "Sports", color: "#059669", bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800" },
+    entertainment: { emoji: "🎬", label: "Entertainment", color: "#db2777", bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-800" },
+    science: { emoji: "🔬", label: "Science", color: "#4f46e5", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800" },
     other: { emoji: "📊", label: "Other", color: "#6b7280", bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-800" },
   }[category];
 

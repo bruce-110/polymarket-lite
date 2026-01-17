@@ -26,7 +26,40 @@ export default function HomePage() {
 
   const heroMarket = useMemo(() => {
     if (markets.length === 0) return null;
-    return markets[0];
+
+    // Score each market for headline suitability
+    const scoredMarkets = markets.map((market) => {
+      let score = 0;
+
+      // 1. Volume score (higher is better) - max 40 points
+      const volumeScore = Math.min((market.volumeScore || 0) / 1000000 * 40, 40);
+
+      // 2. Controversy score (closer to 50% is more controversial) - max 30 points
+      const yesProb = market.yesProbability;
+      const distanceFrom50 = Math.abs(yesProb - 50);
+      const controversyScore = Math.max(30 - distanceFrom50 * 0.6, 0);
+
+      // 3. Engagement score (moderate probability range) - max 20 points
+      const isEngagingRange = yesProb >= 20 && yesProb <= 80;
+      const engagementScore = isEngagingRange ? 20 : 10;
+
+      // 4. Freshness score (based on ID recency) - max 10 points
+      const idNum = parseInt(market.id.replace(/\D/g, '')) || 0;
+      const freshnessScore = Math.min(idNum / 100000000 * 10, 10);
+
+      score = volumeScore + controversyScore + engagementScore + freshnessScore;
+
+      return { market, score };
+    });
+
+    // Sort by score and return the best one
+    scoredMarkets.sort((a, b) => b.score - a.score);
+
+    const best = scoredMarkets[0];
+    console.log(`🏆 Selected headline: "${best.market.question}" (score: ${best.score.toFixed(1)})`);
+    console.log(`   Volume: ${best.market.volume}, Yes: ${best.market.yesProbability}%`);
+
+    return best.market;
   }, [markets]);
 
   const filteredAndSortedMarkets = useMemo(() => {
@@ -42,10 +75,14 @@ export default function HomePage() {
         const normalizedTags = m.tags.map(t => t.toLowerCase());
         const categoryKeywords: Record<Category, string[]> = {
           all: [],
-          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government"],
-          crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft"],
-          sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness"],
-          business: ["business", "finance", "economy", "stock", "market", "trading", "federal reserve", "economics", "stocks"],
+          politics: ["politics", "election", "trump", "biden", "congress", "senate", "president", "government", "democrat", "republican"],
+          geopolitics: ["russia", "ukraine", "war", "israel", "iran", "middle east", "nuclear", "north korea", "invasion", "military", "defense"],
+          business: ["business", "finance", "economy", "stock", "market", "trading", "federal reserve", "fed", "interest rates", "inflation", "gdp", "recession"],
+          crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "defi", "blockchain", "token", "coin", "nft", "web3", "altcoin"],
+          technology: ["tech", "ai", "artificial intelligence", "machine learning", "apple", "google", "microsoft", "amazon", "meta", "tesla", "spacex", "elon"],
+          sports: ["nba", "nfl", "nhl", "ufc", "mma", "soccer", "football", "basketball", "baseball", "hockey", "tennis", "golf", "boxing", "wrestling", "olympics", "super bowl", "world cup", "ncaa", "march madness", "champions league", "premier league"],
+          entertainment: ["movies", "film", "oscar", "academy awards", "music", "grammy", "tv", "television", "streaming", "netflix", "celebrity"],
+          science: ["space", "nasa", "climate", "climate change", "weather", "health", "medical", "pandemic", "virus", "research", "discovery"],
           other: []
         };
 

@@ -227,15 +227,15 @@ export async function GET() {
     markets.sort((a, b) => (b.volumeScore || 0) - (a.volumeScore || 0));
 
     // Filter out:
-    // 1. Markets with 0% or 100% probabilities (extreme outcomes)
+    // 1. Markets with extreme probabilities (3% or below, or 97% or above)
     // 2. China-related markets
     const filteredMarkets = markets.filter((market) => {
-      // Filter out extreme probabilities (0% or 100%)
+      // Filter out extreme probabilities (3% or below, or 97% or above)
       const isExtremeProbability =
-        market.yesProbability === 0 ||
-        market.yesProbability === 100 ||
-        market.noProbability === 0 ||
-        market.noProbability === 100;
+        market.yesProbability <= 3 ||
+        market.yesProbability >= 97 ||
+        market.noProbability <= 3 ||
+        market.noProbability >= 97;
 
       // Filter out China-related markets
       const chinaKeywords = [
@@ -254,7 +254,7 @@ export async function GET() {
       return !isExtremeProbability && !isChinaRelated;
     });
 
-    console.log(`📊 Filtered ${markets.length - filteredMarkets.length} markets (extreme probabilities or China-related)`);
+    console.log(`📊 Filtered ${markets.length - filteredMarkets.length} markets (extreme probabilities ≤3% or ≥97%, or China-related)`);
 
     // Take top 150 markets from filtered results
     const topMarkets = filteredMarkets.slice(0, 150);

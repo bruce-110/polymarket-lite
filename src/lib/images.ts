@@ -3,18 +3,26 @@ import { Category } from "@/types/market";
 // Default images for each category based on Unsplash
 export const DEFAULT_IMAGES: Record<Exclude<Category, "all">, string> = {
   politics: "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=400&h=300&fit=crop",
-  crypto: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=300&fit=crop",
-  sports: "https://images.unsplash.com/photo-1461896836934- voices-in-sport?w=400&h=300&fit=crop",
+  geopolitics: "https://images.unsplash.com/photo-1529101091760-61df63224f1b?w=400&h=300&fit=crop",
   business: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop",
+  crypto: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=300&fit=crop",
+  technology: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop",
+  sports: "https://images.unsplash.com/photo-1461896836934-07f7a423d7f4?w=400&h=300&fit=crop",
+  entertainment: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&h=300&fit=crop",
+  science: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop",
   other: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop",
 };
 
 // Icon URLs for fallback
 export const CATEGORY_ICONS: Record<Exclude<Category, "all">, string> = {
   politics: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop",
-  crypto: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=300&fit=crop",
-  sports: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=300&fit=crop",
+  geopolitics: "https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=400&h=300&fit=crop",
   business: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
+  crypto: "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=300&fit=crop",
+  technology: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop",
+  sports: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=300&fit=crop",
+  entertainment: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=300&fit=crop",
+  science: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=400&h=300&fit=crop",
   other: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop",
 };
 
@@ -54,9 +62,13 @@ export function isValidImageUrl(url: string): boolean {
 export function getPlaceholder(category: Category): string {
   const colors = {
     politics: "#3b82f6", // blue
-    crypto: "#f59e0b", // orange
-    sports: "#10b981", // green
+    geopolitics: "#ea580c", // orange
     business: "#8b5cf6", // purple
+    crypto: "#f59e0b", // amber
+    technology: "#0891b2", // cyan
+    sports: "#10b981", // green
+    entertainment: "#db2777", // pink
+    science: "#4f46e5", // indigo
     other: "#6b7280", // gray
   };
 
