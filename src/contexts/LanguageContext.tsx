@@ -119,9 +119,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Load language from localStorage on mount
   useEffect(() => {
+    // Default to English, only load saved language if explicitly set
     const savedLanguage = localStorage.getItem("language") as Language | null;
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "zh")) {
-      setLanguage(savedLanguage);
+    if (savedLanguage === "zh") {
+      setLanguage("zh");
+    } else {
+      // Default to English
+      setLanguage("en");
+      localStorage.setItem("language", "en");
     }
     setMounted(true);
   }, []);

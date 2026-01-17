@@ -451,7 +451,7 @@ export default function HomePage() {
         <section style={{ borderBottom: '1px solid var(--border-color, #d4d4d4)', paddingBottom: '1rem' }}>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {CATEGORIES.map((cat) => {
-              const displayLabel = language === "zh" ? cat.label : cat.label;
+              const displayLabel = t(`category.${cat.id}`);
               return (
                 <button
                   key={cat.id}

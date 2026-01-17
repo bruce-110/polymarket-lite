@@ -278,22 +278,22 @@ export function getCategoryFromTags(tags: string[]): Category {
 }
 
 export const CATEGORIES: { id: Category; label: string; emoji: string; description: string }[] = [
-  { id: "all", label: "Trending", emoji: "🔥", description: "最热门的预测市场" },
-  { id: "politics", label: "政治", emoji: "🏛️", description: "美国政治、选举、政府" },
-  { id: "geopolitics", label: "地缘政治", emoji: "🌍", description: "国际关系、战争、冲突" },
-  { id: "business", label: "商业", emoji: "💼", description: "经济、金融、商业" },
-  { id: "stocks", label: "股市", emoji: "📈", description: "股票、上市公司、财报" },
-  { id: "crypto", label: "加密货币", emoji: "₿", description: "比特币、以太坊、DeFi" },
-  { id: "technology", label: "科技", emoji: "💻", description: "大型科技公司、创新" },
-  { id: "ai", label: "人工智能", emoji: "🤖", description: "AI、机器学习、ChatGPT" },
-  { id: "sports", label: "体育", emoji: "⚽", description: "NBA、NFL、足球等体育赛事" },
-  { id: "entertainment", label: "娱乐", emoji: "🎬", description: "电影、音乐、明星" },
-  { id: "gaming", label: "游戏", emoji: "🎮", description: "电子竞技、游戏行业" },
-  { id: "science", label: "科学", emoji: "🔬", description: "太空探索、科研发现" },
-  { id: "climate", label: "气候", emoji: "🌡️", description: "气候变化、环境" },
-  { id: "health", label: "健康", emoji: "🏥", description: "医疗健康、疫情" },
-  { id: "society", label: "社会", emoji: "👥", description: "社会文化、网络趋势" },
-  { id: "other", label: "其他", emoji: "📊", description: "其他分类" },
+  { id: "all", label: "Trending", emoji: "🔥", description: "Hottest prediction markets" },
+  { id: "politics", label: "Politics", emoji: "🏛️", description: "US politics, elections, government" },
+  { id: "geopolitics", label: "Geopolitics", emoji: "🌍", description: "International relations, war, conflicts" },
+  { id: "business", label: "Business", emoji: "💼", description: "Economy, finance, commerce" },
+  { id: "stocks", label: "Stocks", emoji: "📈", description: "Stocks, public companies, earnings" },
+  { id: "crypto", label: "Crypto", emoji: "₿", description: "Bitcoin, Ethereum, DeFi" },
+  { id: "technology", label: "Technology", emoji: "💻", description: "Big tech, innovation" },
+  { id: "ai", label: "AI", emoji: "🤖", description: "AI, machine learning, ChatGPT" },
+  { id: "sports", label: "Sports", emoji: "⚽", description: "NBA, NFL, soccer and more" },
+  { id: "entertainment", label: "Entertainment", emoji: "🎬", description: "Movies, music, celebrities" },
+  { id: "gaming", label: "Gaming", emoji: "🎮", description: "Esports, gaming industry" },
+  { id: "science", label: "Science", emoji: "🔬", description: "Space exploration, research" },
+  { id: "climate", label: "Climate", emoji: "🌡️", description: "Climate change, environment" },
+  { id: "health", label: "Health", emoji: "🏥", description: "Healthcare, pandemics" },
+  { id: "society", label: "Society", emoji: "👥", description: "Social culture, internet trends" },
+  { id: "other", label: "Other", emoji: "📊", description: "Other categories" },
 ];
 
 // Trending subcategories for each main category
