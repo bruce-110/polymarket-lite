@@ -134,12 +134,8 @@ export async function GET() {
           const yesPrice = prices[0];
           const noPrice = prices[1];
 
-          // Skip extreme prices (only show markets with 5%-95% probability range)
-          if (yesPrice <= 0.05 || yesPrice >= 0.95 || noPrice <= 0.05 || noPrice >= 0.95) {
-            continue;
-          }
-
           // Found a valid market!
+          // Include all markets regardless of probability to show complete picture
           validMarket = { ...market, yesPrice, noPrice };
           break;
         }
@@ -230,8 +226,8 @@ export async function GET() {
     // Sort by volume (highest first)
     markets.sort((a, b) => (b.volumeScore || 0) - (a.volumeScore || 0));
 
-    // Take top 100 markets to show comprehensive trending data
-    const topMarkets = markets.slice(0, 100);
+    // Take top 150 markets to show comprehensive trending data including all major events
+    const topMarkets = markets.slice(0, 150);
 
     console.log(`🎯 Returning ${topMarkets.length} markets`);
     console.log(`📊 Top market: "${topMarkets[0]?.question}" (${topMarkets[0]?.yesProbability}% / ${topMarkets[0]?.noProbability}%)`);
