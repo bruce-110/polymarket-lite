@@ -26,8 +26,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Apply theme to document
   useEffect(() => {
-    if (!mounted) return;
-
     const root = document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");
@@ -35,8 +33,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove("dark");
     }
 
-    // Save to localStorage
-    localStorage.setItem("theme", theme);
+    // Save to localStorage (only after mount to avoid SSR issues)
+    if (mounted) {
+      localStorage.setItem("theme", theme);
+    }
   }, [theme, mounted]);
 
   const toggleTheme = () => {

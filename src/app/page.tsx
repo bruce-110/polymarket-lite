@@ -4,12 +4,14 @@ import { useState, useMemo } from "react";
 import { Market, Category, CATEGORIES, getCategoryFromTags } from "@/types/market";
 import { useMarkets } from "@/hooks/useMarkets";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { MarketCard } from "@/components/MarketCard";
 import { MarketCardSkeleton, HeroSkeleton } from "@/components/MarketCardSkeleton";
 import { BettingDrawer } from "@/components/BettingDrawer";
 import { SearchBar } from "@/components/SearchBar";
 import { SortSelector } from "@/components/SortSelector";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { TrendingUp, RefreshCw, Newspaper, Star } from "lucide-react";
 import { SortOption } from "@/lib/theme";
 
@@ -23,6 +25,7 @@ export default function HomePage() {
 
   const { markets, isLoading, isValidating, error, mutate } = useMarkets();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { t, language } = useLanguage();
 
   // Select top 2 markets for headlines (primary and secondary)
   const headlineMarkets = useMemo(() => {
@@ -183,10 +186,12 @@ export default function HomePage() {
                 className="px-4 py-2 text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50"
                 style={{ border: '1px solid var(--border-color, #d4d4d4)', borderRadius: '2px', color: 'var(--text-secondary, #666)' }}
                 disabled={isLoading || isValidating}
+                title={t("refresh")}
               >
                 <RefreshCw className={`h-4 w-4 ${isValidating ? "animate-spin" : ""}`} />
               </button>
 
+              <LanguageToggle />
               <ThemeToggle />
 
               <button
@@ -200,7 +205,7 @@ export default function HomePage() {
                 }}
               >
                 <Star className="h-4 w-4" style={{ fill: showFavoritesOnly ? '#000000' : 'none' }} />
-                <span className="hidden sm:inline">{showFavoritesOnly ? "All Markets" : "Favorites"}</span>
+                <span className="hidden sm:inline">{showFavoritesOnly ? t("allMarkets") : t("favorites")}</span>
               </button>
             </div>
           </div>
@@ -445,38 +450,41 @@ export default function HomePage() {
         {/* Category Filters - Newspaper Navigation */}
         <section style={{ borderBottom: '1px solid var(--border-color, #d4d4d4)', paddingBottom: '1rem' }}>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`whitespace-nowrap px-5 py-2 font-medium transition-all ${
-                  selectedCategory === cat.id
-                    ? "text-white"
-                    : "hover:bg-white/50"
-                }`}
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  backgroundColor: selectedCategory === cat.id ? 'var(--category-active, #1a1a1a)' : 'transparent',
-                  border: selectedCategory === cat.id ? 'none' : '1px solid transparent',
-                  borderRadius: '2px',
-                  color: selectedCategory === cat.id ? '#ffffff' : 'var(--text-secondary, #666)',
-                  letterSpacing: '0.02em',
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedCategory !== cat.id) {
-                    e.currentTarget.style.borderBottom = '1px solid var(--category-active, #1a1a1a)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedCategory !== cat.id) {
-                    e.currentTarget.style.borderBottom = '1px solid transparent';
-                  }
-                }}
-              >
-                <span className="mr-2">{cat.emoji}</span>
-                <span className="text-sm" style={{ fontWeight: selectedCategory === cat.id ? '600' : '400' }}>{cat.label}</span>
-              </button>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const displayLabel = language === "zh" ? cat.label : cat.label;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`whitespace-nowrap px-5 py-2 font-medium transition-all ${
+                    selectedCategory === cat.id
+                      ? "text-white"
+                      : "hover:bg-white/50"
+                  }`}
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    backgroundColor: selectedCategory === cat.id ? 'var(--category-active, #1a1a1a)' : 'transparent',
+                    border: selectedCategory === cat.id ? 'none' : '1px solid transparent',
+                    borderRadius: '2px',
+                    color: selectedCategory === cat.id ? '#ffffff' : 'var(--text-secondary, #666)',
+                    letterSpacing: '0.02em',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedCategory !== cat.id) {
+                      e.currentTarget.style.borderBottom = '1px solid var(--category-active, #1a1a1a)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedCategory !== cat.id) {
+                      e.currentTarget.style.borderBottom = '1px solid transparent';
+                    }
+                  }}
+                >
+                  <span className="mr-2">{cat.emoji}</span>
+                  <span className="text-sm" style={{ fontWeight: selectedCategory === cat.id ? '600' : '400' }}>{displayLabel}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

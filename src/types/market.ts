@@ -254,11 +254,23 @@ export const CATEGORY_MAP: Record<string, Category> = {
 };
 
 export function getCategoryFromTags(tags: string[]): Category {
+  if (!tags || tags.length === 0) return "other";
+
   const normalizedTags = tags.map((t) => t.toLowerCase());
 
+  // Check each tag against CATEGORY_MAP
   for (const tag of normalizedTags) {
     if (CATEGORY_MAP[tag]) {
       return CATEGORY_MAP[tag];
+    }
+  }
+
+  // Try partial matching for tags that contain keywords
+  for (const tag of normalizedTags) {
+    for (const [keyword, category] of Object.entries(CATEGORY_MAP)) {
+      if (tag.includes(keyword) || keyword.includes(tag)) {
+        return category;
+      }
     }
   }
 
